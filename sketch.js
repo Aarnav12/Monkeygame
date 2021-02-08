@@ -1,152 +1,148 @@
+var back;
+var backimg;
+var monkey;
+var monkeyimg;
+var ground;
+var groundimg
+var invisibleGround;
+var bananaimg
+var bananagroup;
+var PLAY = 1;
+var END = 0;
+var gameState = PLAY;
+var rockimg;
+var score = 0;
+var rockgroup;
+var sizeincreased = false;
+var sizedecreased = false;
+var mybanana;
+var restartImg, restart;
+//Global Variables
+var bc = 0;
 
-var PLAY = 1
-var END = 0
 
-var gameState = PLAY
-
-var  survivalTime 
-
-var monkey , monkey_running
-var banana ,bananaImage, obstacle, obstacleImage
-var FoodGroup, obstacleGroup
-var score
-
-
-function preload(){
-  
-  
-  monkey_running =            loadAnimation("sprite_0.png","sprite_1.png","sprite_2.png","sprite_3.png","sprite_4.png","sprite_5.png","sprite_6.png","sprite_7.png","sprite_8.png")
-  
-  bananaImage = loadImage("banana.png");
-  obstaceImage = loadImage("obstacle.png");
- 
+function preload() {
+  monkeyimg = loadAnimation("Monkey_01.png", "Monkey_02.png", "Monkey_03.png", "Monkey_04.png", "Monkey_05.png", "Monkey_06.png", "Monkey_07.png", "Monkey_08.png", "Monkey_09.png", "Monkey_10.png");
+  groundimg = loadImage("ground.jpg");
+  bananaimg = loadImage("Banana.png");
+  rockimg = loadImage("stone.png");
+  backimg = loadImage("jungle.jpg");
+  restartImg = loadImage("gameOver.png");
 }
-
 
 
 function setup() {
-  createCanvas(600, 400);
- 
-  monkey=createSprite(80,310,20,20);
-  monkey.addAnimation("moving",monkey_running);
-  monkey.scale=0.1;
-  
-     survivalTime = 0;
- 
-  
- FoodGroup= new Group();
-  obstaclesGroup= new Group();
+  createCanvas(600, 300);
+  back = createSprite(300, 100);
+  back.addImage("back", backimg);
+  back.scale = 1;
+  bananagroup = new Group();
+  ground = createSprite(300, 600, 3000, 200);
+  ground.addImage("ground", groundimg);
+  ground.scale = 0.5;
+  invisibleGround = createSprite(200, 295, 600, 5);
+  invisibleGround.visible = false;
+  monkey = createSprite(60, 280);
+  monkey.addAnimation("monkey", monkeyimg);
+  monkey.scale = 0.17;
+  rockgroup = new Group();
 
-  
+  restart = createSprite(250,100);
+  restart.addImage("restart", restartImg);
+  restart.scale = 1;
+
 }
-
 
 function draw() {
-background("white");
-  
-  ground=createSprite(600,350,1200,20);
-  ground.velocityX=-4;
-  ground.X=ground.width/2;
-  console.log(ground.x);
-  
-  
-  
-  monkey.collide(ground);
-  
-  if(keyDown("space") ){
-    monkey.velocityY = -12;
-  }
-  
- monkey.velocityY = monkey.velocityY + 0.8;
-  
-  
-
-  if(gameState === PLAY){
- 
- 
-  
-     stroke("black");
-  textSize(20);
-  fill("black");
-  survivalTime=Math.ceil(frameCount/frameRate());
- 
-  
-    if(obstaclesGroup.isTouching(monkey)){
-        //trex.velocityY = -12;
-        gameState = END;
-      
+  background(255);
+  restart.visible = false;
+  if (gameState === PLAY) {
+    score = Math.round(score + 0.5);
+    ground.velocityX = -6;
+    if (ground.x < 0) {
+      ground.x = ground.width / 2;
     }
-    
-     if(keyDown("space") ){
-    monkey.velocityY = -12;
-  }
-  
- monkey.velocityY = monkey.velocityY + 0.8;
-    
-  banan(); 
-  
-  obstacles();
-    
+    back.velocityX = -(6 + 1.5 * score / 100);
+    if (back.x < 90) {
+      back.x = back.width / 2;
+    }
+    if (keyDown("space") && monkey.y >= 230) {
+      monkey.velocityY = -12;
+      //playSound("jump.mp3");
+    }
+    monkey.velocityY = monkey.velocityY + 0.7;
+    spawnbanana();
+    spawnrocks();
+    for (var i = 0; i < bananagroup.length; i++) {
+      mybanana = bananagroup.get(i);
+      if (mybanana.isTouching(monkey)) {
+        mybanana.destroy();
+        //playSound("sound://category_achievements/lighthearted_bonus_objective_5.mp3");
+        //var plus = createSprite(200,200,1000,10) ;
+        //plus.setAnimation("plus");
+        //plus.scale = 0.2;
+        //plus.velocityY = -5;
+        //plus.lifetime = 100;
+        bc = bc + 1;
+      }
+    }
+    if (rockgroup.isTouching(monkey)) {
+      
+     gameState = END;
+
+      if (sizedecreased === false) {
+        
+        //monkey.scale = monkey.scale - 0.01;
+        //sizedecreased = true;
+        //playSound("sound://category_hits/8bit_splat.mp3");
+      }
+    }
+    if (rockgroup.isTouching(monkey) == false) {
+      sizedecreased = false;
+    }
+    if (bc % 5 === 0 && bc > 0) {
+      if (sizeincreased === false) {
+        monkey.scale = monkey.scale + 0.05;
+        sizeincreased = true;
+      }
+    } else {
+      sizeincreased = false;
+    }
   }else if(gameState === END){
-    banana.velocityX = 0;
-  banana.lifetime = -1;
-    
-    obstacle.velocityX = 0;
-  obstacle.lifetime = -1;
-    
-     
-     stroke("black");
-  textSize(20);
-  fill("black");
-     text("survivalTime: "+ survivalTime, 100,50);
-  
-  
-  stroke("white");
-  textSize(20);
-  fill("white");
-  text("Score: "+ score, 500,50)
-  
-    
+    restart.visible = true;
+    monkey.velocityY = 0;
+    back.velocityX = 0;
   }
-  stroke("black");
-  textSize(20);
+  monkey.collide(invisibleGround);
+  drawSprites();
   fill("black");
-  text("survivalTime: "+ survivalTime, 100,50);
-    
- drawSprites(); 
-}
-
-function banan() {
-  if (frameCount%80===0){
-  banana=createSprite(600,250, 40,10);
-  banana.addImage(bananaImage); 
-  banana.scale = 0.1;
-  banana.y=random(120,200);
-  banana.velocityX = -5;
-  banana.lifetime = 300;
-  banana.depth = monkey.depth;
-  monkey.depth = monkey.depth+1;
-  FoodGroup.add(banana)
-}
+  textSize(25);
+  text("Score : "+bc,170,25);
+  stroke("black");
   
   
 }
 
-function obstacles() {
-  if (frameCount%300===0){
-  obstacle=createSprite(650,310, 40,10);
-  obstacle.addImage(obstaceImage); 
-  obstacle.scale = 0.2;
-  obstacle.velocityX = -5;
-  obstacle.lifetime = 300;
-  
-  obstaclesGroup.add(obstacle);
+function spawnbanana() {
+  if (frameCount % 60 === 0) {
+    var banana = createSprite(650, random(200, 90));
+    banana.addImage("banana", bananaimg);
+    banana.scale = 0.05;
+    banana.velocityX = -(random(3, 15) + 1.5 * score / 100);
+    banana.lifetime = 230;
+    banana.depth = monkey.depth;
+    banana.depth = monkey.depth + 1;
+    bananagroup.add(banana);
+  }
 }
-  
-  
+
+function spawnrocks() {
+  if (frameCount % 80 === 0) {
+    var rock = createSprite(random(650, 800), 280, 10, 40);
+    rock.addImage("rock", rockimg);
+    rock.scale = 0.15;
+    rock.velocityX = -(6 + 1.5 * score / 100);
+    rock.lifetime = 130;
+    rockgroup.add(rock);
+  }
 }
-
-
-
-
-
